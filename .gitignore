@@ -1,0 +1,7 @@
+$ cat .gitignore
+
+/#src
+/node_modules
+*.package-lock.json
+*.package.json
+*.index.js

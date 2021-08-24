@@ -1,0 +1,14 @@
+html(lang="ru-RU")
+    head 
+        include ./templates/head/head
+
+include ./components/components
+
+body
+    .wrapper 
+        main.main 
+            include ./templates/map-house/map-house
+
+    script(src="../index.js") 
+    script(src="https://api-maps.yandex.ru/2.1.77/?apikey=APzwZmABAAAAj08NXQMBVdJNcJWOnqrbCSFaHTlgLrwQ44UAAAAAAAAAAACOW7-0Ok19SVwdy-5W9VpMnHKLaw==&lang=ru_RU&csp=true&" type="text/javascript")
+

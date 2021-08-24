@@ -1,0 +1,9 @@
+.map-house {
+    margin-top: 40px;
+    &__title {
+        text-transform: uppercase;
+        text-align: center;
+        margin: 25px 0 25px;
+        font-weight: 400;
+    }
+}
