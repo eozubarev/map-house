@@ -194,7 +194,77 @@ var reloadCSS = require('_css_loader');
 
 module.hot.dispose(reloadCSS);
 module.hot.accept(reloadCSS);
-},{"./css/fonts.css":"css/fonts.css","_css_loader":"../node_modules/parcel-bundler/src/builtins/css-loader.js"}],"js/switch.js":[function(require,module,exports) {
+},{"./css/fonts.css":"css/fonts.css","_css_loader":"../node_modules/parcel-bundler/src/builtins/css-loader.js"}],"js/area-map.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+class AreaMap {
+  constructor(coordinates, myMap, polygonColor) {
+    this.coordinates = coordinates;
+    this.myMap = myMap;
+    this.polygonColor = polygonColor;
+    this.geos = [];
+    this.prepareMap();
+  }
+
+  hide() {
+    this.geos.forEach(geoObject => {
+      geoObject.options.set("visible", false);
+    });
+    console.log('Hide');
+  }
+
+  show() {
+    this.geos.forEach(geoObject => {
+      geoObject.options.set("visible", true);
+    });
+    console.log('Show');
+  }
+
+  prepareMap() {
+    for (let index = 0; index < this.coordinates.length; index++) {
+      var myPlacemarkWithContent_1 = new ymaps.Placemark(this.coordinates[index], {
+        iconCaption: index,
+        // Текст при наведении на метку
+        hintContent: "Дом Марины и Жени",
+        //Текст при нажатии на метку
+        balloonContent: this.coordinates[index][0] + "<br>" + this.coordinates[index][1]
+      }, {
+        preset: "islands#greenDotIconWithCaption",
+        iconColor: this.polygonColor
+      });
+      this.myMap.geoObjects.add(myPlacemarkWithContent_1);
+      this.geos.push(myPlacemarkWithContent_1);
+    } // Создаем многоугольник, используя вспомогательный класс Polygon.
+
+
+    this.polygon = new ymaps.Polygon([// Указываем координаты вершин многоугольника.
+    // Координаты вершин внешнего контура.
+    this.coordinates], {
+      // Описываем свойства геообъекта.
+      // Содержимое балуна.
+      hintContent: "Многоугольник"
+    }, {
+      // Задаем опции геообъекта.
+      // Цвет заливки.
+      fillColor: this.polygonColor,
+      strokeColor: "#FFFFFF",
+      // Ширина обводки.
+      strokeWidth: 0.5
+    });
+    this.myMap.geoObjects.add(this.polygon);
+    this.geos.push(this.polygon);
+    console.log("Длина пути: " + this.polygon.geometry.getBounds());
+  }
+
+}
+
+exports.default = AreaMap;
+},{}],"js/switch.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -203,28 +273,37 @@ Object.defineProperty(exports, "__esModule", {
 exports.default = void 0;
 
 class Switch {
-  constructor() {
-    this.switchBtns = [...document.querySelectorAll('.switch-btn')];
+  constructor(title, onSwitch) {
+    let div = addElement(title);
+    this.onSwitch = onSwitch;
+    this.element = div.querySelector(".switch-btn");
     this.activeClass = 'switch-on';
-    this.listeners();
+    this.element.classList.toggle(this.activeClass);
+    this.setup();
   }
 
-  listeners() {
-    for (let i = 0; i < this.switchBtns.length; i++) {
-      const switchBtn = this.switchBtns[i];
-      switchBtn.addEventListener('click', () => {
-        this.toogleSwitchBtn(switchBtn);
-      });
-    }
-  }
-
-  toogleSwitchBtn(btn) {
-    btn.classList.toggle(this.activeClass);
+  setup() {
+    this.element.addEventListener('click', () => {
+      let isOn = this.element.classList.toggle(this.activeClass);
+      this.onSwitch(isOn);
+    });
   }
 
 }
 
 exports.default = Switch;
+
+function addElement(title) {
+  // Создаём новый элемент div
+  // и добавляем в него немного контента
+  let div = document.createElement("div");
+  div.className = "switch-btns__item";
+  div.innerHTML = "<div class=\"switch-btns__item\"> <h3>" + title + "</h3><div class=\"switch-btn\" id=\"switch\"></div></div>"; // Добавляем только что созданный элемент в дерево DOM
+
+  let container = document.querySelector(".switch-btns__container");
+  container.appendChild(div);
+  return div;
+}
 },{}],"js/yandex-map.js":[function(require,module,exports) {
 "use strict";
 
@@ -233,6 +312,12 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = void 0;
 
+var _areaMap = _interopRequireDefault(require("./area-map"));
+
+var _switch = _interopRequireDefault(require("./switch"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 class YandexMap {
   constructor() {
     this.init();
@@ -240,81 +325,42 @@ class YandexMap {
 
   init() {
     ymaps.ready(function () {
-      var coordinates = [[57.179300422, 36.541094922], [57.179363806, 36.541661756], [57.178966376, 36.541806659], [57.178355721, 36.542029958], [57.178294590, 36.541462542], [57.179300422, 36.541094922]]; // yamap - ID блока, в котором инициализируется карта
-
-      var myMap = new ymaps.Map('yamap', {
-        //Берём центр Москвы
-        center: coordinates[0],
+      console.log("READYYYY");
+      var myMap = new ymaps.Map("yamap", {
+        center: [57.179300422, 36.541094922],
         zoom: 17,
-        type: 'yandex#hybrid'
+        type: "yandex#hybrid"
       }, {
-        searchControlProvider: 'yandex#search'
-      }); // Создаём макет содержимого.
-
-      var MyIconContentLayout = ymaps.templateLayoutFactory.createClass('<div style="color: #FFFFFF; font-weight: bold; border-color: 6px;">$[properties.iconContent]</div>');
-
-      for (let index = 0; index < coordinates.length; index++) {
-        var myPlacemarkWithContent_1 = new ymaps.Placemark(coordinates[index], {
-          'iconCaption': 'Точка №' + index,
-          // Текст при наведении на метку
-          hintContent: 'Дом Марины и Жени',
-          //Текст при нажатии на метку
-          balloonContent: coordinates[index][0] + '<br>' + coordinates[index][1]
-        }, {
-          preset: 'islands#greenDotIconWithCaption'
-        });
-        myMap.geoObjects.add(myPlacemarkWithContent_1); // if (index > 0) {
-        //     var distance = q.rulerDistance(new ymaps.GeoPoint(coordinates[index-1][0], coordinates[index-1][1]), 
-        //     new ymaps.GeoPoint(coordinates[index][0], coordinates[index][1]))
-        //     myMap.geoObjects.add(new ymaps.Placemark(coordinates[index], {'iconCaption': distance}, {preset: 'islands#greenDotIconWithCaption'}));
-        // }
-      } // Создаем многоугольник, используя вспомогательный класс Polygon.
-
-
-      var myPolygon = new ymaps.Polygon([// Указываем координаты вершин многоугольника.
-      // Координаты вершин внешнего контура.
-      coordinates], {
-        // Описываем свойства геообъекта.
-        // Содержимое балуна.
-        hintContent: "Многоугольник"
-      }, {
-        // Задаем опции геообъекта.
-        // Цвет заливки.
-        fillColor: '#00FF0088',
-        strokeColor: '#FFFFFF',
-        // Ширина обводки.
-        strokeWidth: 0.5
+        searchControlProvider: "yandex#search"
       });
-      myMap.geoObjects.add(myPolygon);
-      let multiRoute = new ymap.multiRouter.MultiRoute({
-        referencePoints: coordinates
-      }); // Подписка на событие готовности маршрута.
-
-      multiRoute.model.events.add('requestsuccess', function () {
-        // Получение ссылки на активный маршрут.
-        var activeRoute = multiRoute.getActiveRoute(); // Получение коллекции путей активного маршрута.
-
-        var activeRoutePaths = activeRoute.getPaths(); // Проход по коллекции путей.
-
-        activeRoutePaths.each(function (path) {
-          console.log("Длина пути: " + path.properties.get("distance").text);
-          console.log("Время прохождения пути: " + path.properties.get("duration").text);
-        });
+      let coordinates1 = [[57.179300422, 36.541094922], [57.179363806, 36.541661756], [57.178966376, 36.541806659], [57.178355721, 36.542029958], [57.17829459, 36.541462542], [57.179300422, 36.541094922]];
+      let coordinates2 = [[57.179397279, 36.542292888], [57.1794529, 36.542895716], [57.178272897, 36.543363467], [57.17820305, 36.542765376], [57.179397279, 36.542292888]];
+      let first = new _areaMap.default(coordinates1, myMap, "#00FF0088");
+      let firstSwitch = new _switch.default("Дом Марины и Жени", function (isOn) {
+        if (isOn) {
+          first.show();
+        } else {
+          first.hide();
+        }
       });
-      multiRoute.editor.stop();
-      myMap.geoObjects.add(multiRoute);
+      let sec = new _areaMap.default(coordinates2, myMap, "#FF00FF40");
+      new _switch.default("Дом 3", function (isOn) {
+        if (isOn) {
+          sec.show();
+        } else {
+          sec.hide();
+        }
+      });
     });
   }
 
 }
 
 exports.default = YandexMap;
-},{}],"../index.js":[function(require,module,exports) {
+},{"./area-map":"js/area-map.js","./switch":"js/switch.js"}],"../index.js":[function(require,module,exports) {
 "use strict";
 
 require("./src/main.scss");
-
-var _switch = _interopRequireDefault(require("./src/js/switch.js"));
 
 var _yandexMap = _interopRequireDefault(require("./src/js/yandex-map.js"));
 
@@ -324,12 +370,8 @@ document.addEventListener('DOMContentLoaded', event => {
   if (document.getElementById('yamap')) {
     new _yandexMap.default();
   }
-
-  if (document.getElementById('switch')) {
-    new _switch.default();
-  }
 });
-},{"./src/main.scss":"main.scss","./src/js/switch.js":"js/switch.js","./src/js/yandex-map.js":"js/yandex-map.js"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"./src/main.scss":"main.scss","./src/js/yandex-map.js":"js/yandex-map.js"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -357,7 +399,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "58410" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "52633" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

@@ -1,6 +1,5 @@
 import './src/main.scss'
 
-import Switch from './src/js/switch.js';
 import YandexMap from './src/js/yandex-map.js';
 
 document.addEventListener( 'DOMContentLoaded', event => {
@@ -9,8 +8,5 @@ document.addEventListener( 'DOMContentLoaded', event => {
         new YandexMap;
     }
 
-    if (document.getElementById('switch')) {
-        new Switch;
-    }
 });
 
