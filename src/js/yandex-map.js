@@ -30,12 +30,21 @@ export default class YandexMap {
             ];
 
             let coordinates2 = [
+                [57,1790, 36,5418],
+                [57,1790, 36,5424],
+                [57,1782, 36,5428],
+                [57,1781, 36,5421],
+                [57,1790, 36,5418],
+            ];
+
+            let coordinates3 = [
                 [57.179397279, 36.542292888],
                 [57.1794529, 36.542895716],
                 [57.178272897, 36.543363467],
                 [57.17820305, 36.542765376],
                 [57.179397279, 36.542292888],
             ];
+
             let first = new AreaMap(coordinates1, myMap, "#00FF0088");
             let firstSwitch = new Switch("Дом Марины и Жени", function(isOn) {
                 if (isOn) {
@@ -44,12 +53,23 @@ export default class YandexMap {
                     first.hide()
                 }
             })
-            let sec = new AreaMap(coordinates2, myMap, "#FF00FF40");
-            new Switch("Дом 3", function(isOn) {
+
+            let sec = new AreaMap(coordinates2, myMap, "#88EE2240");
+            new Switch("Дом Руслана и Ольги", function(isOn) {
                 if (isOn) {
                     sec.show()
                 } else {
                     sec.hide()
+                }
+            })
+
+
+            let third = new AreaMap(coordinates3, myMap, "#FF00FF40");
+            new Switch("Дом 3", function(isOn) {
+                if (isOn) {
+                    third.show()
+                } else {
+                    third.hide()
                 }
             })
         });
